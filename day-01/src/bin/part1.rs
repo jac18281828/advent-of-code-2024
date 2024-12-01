@@ -1,7 +1,7 @@
 use itertools::izip;
 use std::io;
 
-fn parse_lines_and_sum_differences(lines: &Vec<String>) -> i32 {
+fn parse_lines_and_sum_differences(lines: &[String]) -> i32 {
     let mut l1: Vec<i32> = vec![];
     let mut l2: Vec<i32> = vec![];
 
@@ -14,7 +14,7 @@ fn parse_lines_and_sum_differences(lines: &Vec<String>) -> i32 {
     l2.sort();
     let mut sum_distance = 0;
     for (x1, x2) in izip!(l1.iter(), l2.iter()) {
-        sum_distance = sum_distance + (x1 - x2).abs();
+        sum_distance += (x1 - x2).abs();
     }
     sum_distance
 }

@@ -1,6 +1,6 @@
 use std::io;
 
-fn parse_lines_and_sum_similarity_score(lines: &Vec<String>) -> i32 {
+fn parse_lines_and_sum_similarity_score(lines: &[String]) -> i32 {
     let mut l1: Vec<i32> = vec![];
     let mut count_map = std::collections::HashMap::new();
     lines.iter().for_each(|line| {
@@ -14,8 +14,8 @@ fn parse_lines_and_sum_similarity_score(lines: &Vec<String>) -> i32 {
     });
     let mut sum_similarity = 0;
     for x1 in l1.iter() {
-        let count = count_map.get_mut(&x1).unwrap();
-        sum_similarity = sum_similarity + *count * x1;
+        let count = count_map.get_mut(x1).unwrap();
+        sum_similarity += *count * x1;
     }
     sum_similarity
 }
