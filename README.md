@@ -17,7 +17,7 @@ Collect stars by solving puzzles. Two puzzles will be made available on each day
 | Day 1 | Pary 2 - Sample | 31       |
 | Day 1 | Part 2          | 23177084 |
 | Day 2 | Part 1 - Sample | 2        |
-| Day 2 | Part 1          | 341      |
+| Day 2 | Part 1          | 404      |
 
 
 
