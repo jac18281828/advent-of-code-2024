@@ -62,3 +62,59 @@ fn main() {
     let safe_lines = count_safe_lines(&lines);
     println!("{}", safe_lines);
 }
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_line_to_number_vector() {
+        assert_eq!(parse_line_to_number_vector("1 2 3"), vec![1, 2, 3]);
+        assert_eq!(parse_line_to_number_vector("10 -5 0"), vec![10, -5, 0]);
+        assert_eq!(parse_line_to_number_vector(""), vec![]);
+    }
+
+    #[test]
+    fn test_is_difference_within_safe_range() {
+        assert!(is_difference_within_safe_range(1));
+        assert!(is_difference_within_safe_range(3));
+        assert!(!is_difference_within_safe_range(4));
+        assert!(!is_difference_within_safe_range(0));
+    }
+
+    #[test]
+    fn test_is_monotonic() {
+        assert_eq!(is_monotonic(&[1, 2, 3]), Some(Ordering::Less));
+        assert_eq!(is_monotonic(&[3, 2, 1]), Some(Ordering::Greater));
+        assert_eq!(is_monotonic(&[1, 2, 1]), None);
+        assert_eq!(is_monotonic(&[1, 1, 1]), None);
+    }
+
+    #[test]
+    fn test_is_safe() {
+        assert!(is_safe(&[1, 2, 3]));
+        assert!(is_safe(&[3, 2, 1]));
+        assert!(!is_safe(&[1, 5, 5]));
+    }
+
+    #[test]
+    fn test_is_safe_or_is_safe_after_removing_one_sample() {
+        assert!(is_safe_or_is_safe_after_removing_one_sample(&[1, 2, 3]));
+        assert!(is_safe_or_is_safe_after_removing_one_sample(&[3, 2, 1]));
+        assert!(is_safe_or_is_safe_after_removing_one_sample(&[1, 2, 4]));
+        assert!(is_safe_or_is_safe_after_removing_one_sample(&[1, 5, 2]));
+        assert!(!is_safe_or_is_safe_after_removing_one_sample(&[1, 5, 5, 2]));
+    }
+
+    #[test]
+    fn test_count_safe_lines() {
+        let lines = [
+            "7 6 4 2 1".to_string(),
+            "1 2 7 8 9".to_string(),
+            "9 7 6 2 1".to_string(),
+            "1 3 2 4 5".to_string(),
+            "8 6 4 4 1".to_string(),
+            "1 3 6 7 9".to_string(),
+        ];
+        assert_eq!(count_safe_lines(&lines), 4);
+    }
+}

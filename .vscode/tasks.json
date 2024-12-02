@@ -18,7 +18,7 @@
         {
             "label": "lint",
             "type": "shell",
-            "command": "cargo clippy --all-features --no-deps",
+            "command": "cargo clippy --all-targets --all-features -- -D warnings",
             "options": {
                 "cwd": "${workspaceFolder}"
             },
