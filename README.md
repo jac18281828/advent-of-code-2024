@@ -12,7 +12,17 @@ Collect stars by solving puzzles. Two puzzles will be made available on each day
 
 | Day   | Part            | Solution |
 | ----- | --------------- | -------- |
-| Day 1 | Part 1 = Sample | 11       |
+| Day 1 | Part 1 - Sample | 11       |
 | Day 1 | Part 1          | 2057374  |
 | Day 1 | Pary 2 - Sample | 31       |
 | Day 1 | Part 2          | 23177084 |
+| Day 2 | Part 1 - Sample | 2        |
+| Day 2 | Part 1          | 341      |
+
+
+
+# Run one example
+
+```shell
+$ cat input/day2-part1.dat | cargo run --release --package day-02 --bin part1
+```
