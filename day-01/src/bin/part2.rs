@@ -1,14 +1,14 @@
 use std::io;
 
-fn parse_lines_and_sum_similarity_score(lines: &[String]) -> i32 {
-    let mut l1: Vec<i32> = vec![];
+fn parse_lines_and_sum_similarity_score(lines: &[String]) -> i64 {
+    let mut l1: Vec<i64> = vec![];
     let mut count_map = std::collections::HashMap::new();
     lines.iter().for_each(|line| {
         let parts = line.split_ascii_whitespace().collect::<Vec<&str>>();
-        let x1 = parts[0].parse::<i32>().unwrap();
+        let x1 = parts[0].parse::<i64>().unwrap();
         l1.push(x1);
         count_map.entry(x1).or_insert(0);
-        let x2 = parts[1].parse::<i32>().unwrap();
+        let x2 = parts[1].parse::<i64>().unwrap();
         let count = count_map.entry(x2).or_insert(0);
         *count += 1;
     });

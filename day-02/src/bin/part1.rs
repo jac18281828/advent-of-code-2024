@@ -1,18 +1,18 @@
 use std::io;
 
-const MAX_SAFE_DIFFERENCE: i32 = 3;
+const MAX_SAFE_DIFFERENCE: i64 = 3;
 
-fn parse_line_to_number_vector(line: &str) -> Vec<i32> {
+fn parse_line_to_number_vector(line: &str) -> Vec<i64> {
     line.split_ascii_whitespace()
-        .map(|x| x.parse::<i32>().unwrap())
+        .map(|x| x.parse::<i64>().unwrap())
         .collect()
 }
 
-fn is_safe_difference(difference: i32) -> bool {
+fn is_safe_difference(difference: i64) -> bool {
     difference.abs() > 0 && difference.abs() <= MAX_SAFE_DIFFERENCE
 }
 
-fn is_increasing(numbers: &[i32]) -> bool {
+fn is_increasing(numbers: &[i64]) -> bool {
     for i in 0..numbers.len() - 1 {
         if numbers[i] >= numbers[i + 1] {
             return false;
@@ -21,7 +21,7 @@ fn is_increasing(numbers: &[i32]) -> bool {
     true
 }
 
-fn is_decreasing(numbers: &[i32]) -> bool {
+fn is_decreasing(numbers: &[i64]) -> bool {
     for i in 0..numbers.len() - 1 {
         if numbers[i] <= numbers[i + 1] {
             return false;
@@ -30,7 +30,7 @@ fn is_decreasing(numbers: &[i32]) -> bool {
     true
 }
 
-fn is_safe(numbers: &[i32]) -> bool {
+fn is_safe(numbers: &[i64]) -> bool {
     if is_decreasing(numbers) || is_increasing(numbers) {
         for i in 0..numbers.len() - 1 {
             if !is_safe_difference(numbers[i + 1] - numbers[i]) {
@@ -42,7 +42,7 @@ fn is_safe(numbers: &[i32]) -> bool {
     false
 }
 
-fn count_safe_lines(lines: &[String]) -> i32 {
+fn count_safe_lines(lines: &[String]) -> i64 {
     let mut safe_lines = 0;
     for line in lines {
         let number_vec = parse_line_to_number_vector(line);

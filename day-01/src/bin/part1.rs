@@ -1,14 +1,14 @@
 use itertools::izip;
 use std::io;
 
-fn parse_lines_and_sum_differences(lines: &[String]) -> i32 {
-    let mut l1: Vec<i32> = vec![];
-    let mut l2: Vec<i32> = vec![];
+fn parse_lines_and_sum_differences(lines: &[String]) -> i64 {
+    let mut l1: Vec<i64> = vec![];
+    let mut l2: Vec<i64> = vec![];
 
     lines.iter().for_each(|line| {
         let parts = line.split_ascii_whitespace().collect::<Vec<&str>>();
-        l1.push(parts[0].parse::<i32>().unwrap());
-        l2.push(parts[1].parse::<i32>().unwrap());
+        l1.push(parts[0].parse::<i64>().unwrap());
+        l2.push(parts[1].parse::<i64>().unwrap());
     });
     l1.sort();
     l2.sort();

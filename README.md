@@ -10,16 +10,17 @@ Collect stars by solving puzzles. Two puzzles will be made available on each day
 
 ### Do your own work!
 
-| Day   | Part            | Solution |
-| ----- | --------------- | -------- |
-| Day 1 | Part 1 - Sample | 11       |
-| Day 1 | Part 1          | 2057374  |
-| Day 1 | Pary 2 - Sample | 31       |
-| Day 1 | Part 2          | 23177084 |
-| Day 2 | Part 1 - Sample | 2        |
-| Day 2 | Part 1          | 404      |
-
-
+| Day   | Part            | Solution  |
+| ----- | --------------- | --------- |
+| Day 1 | Part 1 - Sample | 11        |
+| Day 1 | Part 1          | 2057374   |
+| Day 1 | Pary 2 - Sample | 31        |
+| Day 1 | Part 2          | 23177084  |
+| Day 2 | Part 1 - Sample | 2         |
+| Day 2 | Part 1          | 404       |
+| Day 3 | Part 1 - Sample | 161       |
+| Day 3 | Part 1          | 179571322 |
+| Day 3 | Part 1 - Python | 179571322 |
 
 # Run one example
 

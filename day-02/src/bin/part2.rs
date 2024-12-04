@@ -1,19 +1,19 @@
 use std::cmp::Ordering;
 use std::io;
 
-const MAX_SAFE_DIFFERENCE: i32 = 3;
+const MAX_SAFE_DIFFERENCE: i64 = 3;
 
-fn parse_line_to_number_vector(line: &str) -> Vec<i32> {
+fn parse_line_to_number_vector(line: &str) -> Vec<i64> {
     line.split_ascii_whitespace()
-        .filter_map(|x| x.parse::<i32>().ok())
+        .filter_map(|x| x.parse::<i64>().ok())
         .collect()
 }
 
-fn is_difference_within_safe_range(diff: i32) -> bool {
+fn is_difference_within_safe_range(diff: i64) -> bool {
     (1..=MAX_SAFE_DIFFERENCE).contains(&diff.abs())
 }
 
-fn is_monotonic(numbers: &[i32]) -> Option<Ordering> {
+fn is_monotonic(numbers: &[i64]) -> Option<Ordering> {
     if numbers.windows(2).all(|w| w[0] < w[1]) {
         Some(Ordering::Less)
     } else if numbers.windows(2).all(|w| w[0] > w[1]) {
@@ -23,7 +23,7 @@ fn is_monotonic(numbers: &[i32]) -> Option<Ordering> {
     }
 }
 
-fn is_safe(numbers: &[i32]) -> bool {
+fn is_safe(numbers: &[i64]) -> bool {
     if is_monotonic(numbers).is_some() {
         numbers
             .windows(2)
@@ -33,7 +33,7 @@ fn is_safe(numbers: &[i32]) -> bool {
     }
 }
 
-fn is_safe_or_is_safe_after_removing_one_sample(numbers: &[i32]) -> bool {
+fn is_safe_or_is_safe_after_removing_one_sample(numbers: &[i64]) -> bool {
     if is_safe(numbers) {
         return true;
     }
@@ -46,12 +46,12 @@ fn is_safe_or_is_safe_after_removing_one_sample(numbers: &[i32]) -> bool {
     false
 }
 
-fn count_safe_lines(lines: &[String]) -> i32 {
+fn count_safe_lines(lines: &[String]) -> i64 {
     lines
         .iter()
         .map(|line| parse_line_to_number_vector(line))
         .filter(|nums| is_safe_or_is_safe_after_removing_one_sample(nums))
-        .count() as i32
+        .count() as i64
 }
 
 fn main() {
