@@ -21,6 +21,8 @@ Collect stars by solving puzzles. Two puzzles will be made available on each day
 | Day 3 | Part 1 - Sample | 161       |
 | Day 3 | Part 1          | 179571322 |
 | Day 3 | Part 1 - Python | 179571322 |
+| Day 3 | Part 2 - Sample | 48        |
+| Day 3 | Part 2          | 103811193 |
 
 # Run one example
 
