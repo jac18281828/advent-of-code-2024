@@ -13,8 +13,7 @@
                 "args": [
                     "test",
                     "--no-run",
-                    "--package=day-04",
-                    "--lib",
+                    "--package=day-05",
                 ]
             },
             "args": []
