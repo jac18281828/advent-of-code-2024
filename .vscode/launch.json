@@ -13,6 +13,7 @@
                 "args": [
                     "test",
                     "--no-run",
+                    "--lib",
                     "--package=day-05",
                 ]
             },
@@ -21,19 +22,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Cargo day-04-part2",
+            "name": "Cargo day-05-part2",
             "cwd": "${workspaceFolder}",
             "cargo": {
                 "args": [
                     "build",
-                    "--package=day-04",
+                    "--package=day-05",
                     "--bin=part2",
                 ]
             },
-            "args": [
-                "-f",
-                "day-05/data/example.txt",
-            ]
+            "args": []
         }
     ]
 }

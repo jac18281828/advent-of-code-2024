@@ -27,7 +27,8 @@ Collect stars by solving puzzles. Two puzzles will be made available on each day
 | Day 4 | Part 1          | 2524      |
 | Day 4 | Part 2 - Sample | 9         |
 | Day 4 | Part 2          | 1873      |
-
+| Day 5 | Part 1 - Sample | 123       |
+| Day 5 | Par5 2          | 6004      |
 
 # Run one example
 
