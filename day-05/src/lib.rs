@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct PageRelations {
     before: HashSet<usize>,
 }
@@ -11,6 +11,12 @@ impl PageRelations {
         Self {
             before: HashSet::new(),
         }
+    }
+}
+
+impl Default for PageOrderTable {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

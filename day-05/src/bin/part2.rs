@@ -52,7 +52,7 @@ fn topological_sort(nodes: &HashSet<&str>, edges: &Vec<(&str, &str)>) -> Option<
         // Identify nodes involved in cycles
         let remaining_nodes: HashSet<&str> = nodes
             .iter()
-            .filter(|&node| !sorted_order.contains(&node))
+            .filter(|&node| !sorted_order.contains(node))
             .cloned()
             .collect();
         eprintln!("Cycle detected involving nodes: {:?}", remaining_nodes);
@@ -60,7 +60,7 @@ fn topological_sort(nodes: &HashSet<&str>, edges: &Vec<(&str, &str)>) -> Option<
     }
 }
 
-fn repair_update(update: Vec<&str>, rules: &Vec<&str>) -> Option<Vec<String>> {
+fn repair_update(update: Vec<&str>, rules: &[&str]) -> Option<Vec<String>> {
     // Parse and trim the rules
     let edges: Vec<(&str, &str)> = rules
         .iter()
