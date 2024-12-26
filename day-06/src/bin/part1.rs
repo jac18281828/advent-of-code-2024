@@ -1,4 +1,6 @@
 use std::any::Any;
+use std::collections::HashSet;
+use std::io;
 
 use thiserror::Error;
 
@@ -99,6 +101,7 @@ impl Dot {
         Self {}
     }
 
+    #[allow(dead_code)]
     fn is_dot(representation: char) -> bool {
         representation == DOT
     }
@@ -116,12 +119,16 @@ impl GamePiece for Dot {
 
 struct GameBoard {
     board: Bitmap<Box<dyn GamePiece>>,
+    visited: HashSet<(usize, usize)>,
 }
 
 impl GameBoard {
     fn new(width: usize, height: usize) -> Self {
         let board = Bitmap::new(width, height);
-        Self { board }
+        Self {
+            board,
+            visited: HashSet::new(),
+        }
     }
 
     fn import(board: &[String]) -> Self {
@@ -152,10 +159,14 @@ impl GameBoard {
         self.board.set(x, y, piece)
     }
 
-    fn get(&self, x: usize, y: usize) -> Option<&Box<dyn GamePiece>> {
-        self.board.get(x, y)
+    fn get(&self, x: usize, y: usize) -> Option<&dyn GamePiece> {
+        if let Some(piece) = self.board.get(x, y) {
+            return Some(piece.as_ref());
+        }
+        None
     }
 
+    #[allow(dead_code)]
     fn print(&self) {
         for y in 0..self.board.height() {
             for x in 0..self.board.width() {
@@ -239,6 +250,7 @@ impl GameBoard {
             if guard_position.is_none() {
                 break;
             }
+            self.visited.insert(guard_position.unwrap());
             steps += 1;
         }
         steps
@@ -247,7 +259,6 @@ impl GameBoard {
     fn count_all_paths_until_stuck(&mut self) -> usize {
         let mut count = 0;
         loop {
-            self.print();
             count += self.step_until_stopped();
             let guard_position = self.find_guard().unwrap();
             let guard = self.get(guard_position.0, guard_position.1).unwrap();
@@ -264,7 +275,6 @@ impl GameBoard {
                 break;
             }
         }
-        self.print();
         count
     }
 
@@ -284,6 +294,24 @@ impl GameBoard {
         let piece = self.get(x, y).unwrap();
         Obstacle::is_obstacle(piece.get_representation())
     }
+
+    fn visited_count(&self) -> usize {
+        self.visited.len()
+    }
+}
+
+fn main() {
+    let lines = io::stdin()
+        .lines()
+        .map(|line| line.unwrap())
+        .collect::<Vec<String>>();
+    let mut game_board = GameBoard::import(&lines);
+    let count = game_board.count_all_paths_until_stuck();
+    println!(
+        "Steps: {}, having visited: {}",
+        count,
+        game_board.visited_count()
+    );
 }
 
 #[cfg(test)]
@@ -447,7 +475,8 @@ mod tests {
         let lines = sample_data();
         let mut game_board = GameBoard::import(&lines);
         let count = game_board.count_all_paths_until_stuck();
-        assert_eq!(count, 41);
+        assert_eq!(count, 44);
+        assert_eq!(game_board.visited_count(), 41);
     }
 
     fn sample_data() -> Vec<String> {
