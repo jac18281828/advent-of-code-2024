@@ -1,4 +1,3 @@
-use std::any::Any;
 use std::collections::HashSet;
 use std::io;
 
@@ -10,10 +9,38 @@ const GUARD: &str = "^<>v";
 const OBSTACLE: char = '#';
 const DOT: char = '.';
 
+#[derive(Debug, Clone, PartialEq)]
+enum GameBoardCell {
+    Guard(&'static Guard),
+    Obstacle(&'static Obstacle),
+    Dot(&'static Dot),
+}
+
+impl GameBoardCell {
+    fn get_representation(&self) -> char {
+        match self {
+            GameBoardCell::Guard(guard) => guard.get_representation(),
+            GameBoardCell::Obstacle(obstacle) => obstacle.get_representation(),
+            GameBoardCell::Dot(dot) => dot.get_representation(),
+        }
+    }
+
+    fn as_guard(&self) -> Option<&Guard> {
+        match self {
+            GameBoardCell::Guard(guard) => Some(guard),
+            _ => None,
+        }
+    }
+}
+
+impl Default for GameBoardCell {
+    fn default() -> Self {
+        GameBoardCell::Dot(&DOT_FLY_WEIGHT)
+    }
+}
+
 trait GamePiece {
     fn get_representation(&self) -> char;
-
-    fn as_any(&self) -> &dyn std::any::Any;
 }
 
 #[derive(Debug, Error)]
@@ -22,7 +49,12 @@ enum GuardError {
     InvalidRepresentation,
 }
 
-#[derive(Debug, PartialEq)]
+const GUARD_FLY_WEIGHT_UP: Guard = Guard { guard: '^' };
+const GUARD_FLY_WEIGHT_RIGHT: Guard = Guard { guard: '>' };
+const GUARD_FLY_WEIGHT_DOWN: Guard = Guard { guard: 'v' };
+const GUARD_FLY_WEIGHT_LEFT: Guard = Guard { guard: '<' };
+
+#[derive(Debug, PartialEq, Clone)]
 struct Guard {
     guard: char,
 }
@@ -31,32 +63,31 @@ impl GamePiece for Guard {
     fn get_representation(&self) -> char {
         self.guard
     }
-
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
 }
 
 impl Guard {
-    fn new(guard: char) -> Result<Self, GuardError> {
-        if !Guard::is_guard(guard) {
-            return Err(GuardError::InvalidRepresentation);
+    fn new(guard: char) -> Result<&'static Self, GuardError> {
+        match guard {
+            '^' => Ok(&GUARD_FLY_WEIGHT_UP),
+            '>' => Ok(&GUARD_FLY_WEIGHT_RIGHT),
+            'v' => Ok(&GUARD_FLY_WEIGHT_DOWN),
+            '<' => Ok(&GUARD_FLY_WEIGHT_LEFT),
+            _ => Err(GuardError::InvalidRepresentation),
         }
-        Ok(Self { guard })
     }
 
     fn is_guard(representation: char) -> bool {
         GUARD.contains(representation)
     }
 
-    fn turn_right(&mut self) {
-        self.guard = match self.guard {
-            '^' => '>',
-            '>' => 'v',
-            'v' => '<',
-            '<' => '^',
-            _ => panic!("Invalid guard char"),
-        };
+    fn turn_right(&self) -> Option<&'static Self> {
+        match self.guard {
+            '^' => Some(&GUARD_FLY_WEIGHT_RIGHT),
+            '>' => Some(&GUARD_FLY_WEIGHT_DOWN),
+            'v' => Some(&GUARD_FLY_WEIGHT_LEFT),
+            '<' => Some(&GUARD_FLY_WEIGHT_UP),
+            _ => None,
+        }
     }
 
     fn get_delta(&self) -> (i32, i32) {
@@ -70,12 +101,14 @@ impl Guard {
     }
 }
 
+const OBSTACLE_FLY_WEIGHT: Obstacle = Obstacle {};
+
 #[derive(Debug, PartialEq)]
 struct Obstacle {}
 
 impl Obstacle {
-    fn new() -> Self {
-        Self {}
+    fn new() -> &'static Self {
+        &OBSTACLE_FLY_WEIGHT
     }
 
     fn is_obstacle(representation: char) -> bool {
@@ -87,18 +120,16 @@ impl GamePiece for Obstacle {
     fn get_representation(&self) -> char {
         OBSTACLE
     }
-
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
 }
+
+const DOT_FLY_WEIGHT: Dot = Dot {};
 
 #[derive(Debug, PartialEq)]
 struct Dot {}
 
 impl Dot {
-    fn new() -> Self {
-        Self {}
+    fn new() -> &'static Self {
+        &DOT_FLY_WEIGHT
     }
 
     #[allow(dead_code)]
@@ -111,14 +142,10 @@ impl GamePiece for Dot {
     fn get_representation(&self) -> char {
         DOT
     }
-
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
 }
 
 struct GameBoard {
-    board: Bitmap<Box<dyn GamePiece>>,
+    board: Bitmap<GameBoardCell>,
     visited: HashSet<(usize, usize)>,
 }
 
@@ -139,11 +166,10 @@ impl GameBoard {
             for (x, cell) in row.chars().enumerate() {
                 let piece = match cell {
                     '^' | '>' | 'v' | '<' => {
-                        Box::new(Guard::new(cell).expect("Invalid guard mapping"))
-                            as Box<dyn GamePiece>
+                        GameBoardCell::Guard(Guard::new(cell).expect("Invalid guard mapping"))
                     }
-                    '#' => Box::new(Obstacle::new()) as Box<dyn GamePiece>,
-                    '.' => Box::new(Dot::new()) as Box<dyn GamePiece>,
+                    '#' => GameBoardCell::Obstacle(Obstacle::new()),
+                    '.' => GameBoardCell::Dot(Dot::new()),
                     _ => panic!("Invalid game piece"),
                 };
                 game_board
@@ -155,13 +181,13 @@ impl GameBoard {
         game_board
     }
 
-    fn set(&mut self, x: usize, y: usize, piece: Box<dyn GamePiece>) -> Result<(), BitmapError> {
+    fn set(&mut self, x: usize, y: usize, piece: GameBoardCell) -> Result<(), BitmapError> {
         self.board.set(x, y, piece)
     }
 
-    fn get(&self, x: usize, y: usize) -> Option<&dyn GamePiece> {
+    fn get(&self, x: usize, y: usize) -> Option<&GameBoardCell> {
         if let Some(piece) = self.board.get(x, y).unwrap_or(None) {
-            return Some(piece.as_ref());
+            return Some(piece);
         }
         None
     }
@@ -201,12 +227,13 @@ impl GameBoard {
         let (x, y) = guard_position;
         let guard = self.get(x, y).unwrap();
         // makes me sweat
-        let guard = guard.as_any().downcast_ref::<Guard>().unwrap();
-        let guard_delta = guard.get_delta();
-        let new_position = self.add_delta_signed(x, y, guard_delta);
-        if let Some((new_x, new_y)) = new_position {
-            if !self.is_obstacle(new_x, new_y) {
-                return Some((new_x, new_y));
+        if let Some(guard) = guard.as_guard() {
+            let guard_delta = guard.get_delta();
+            let new_position = self.add_delta_signed(x, y, guard_delta);
+            if let Some((new_x, new_y)) = new_position {
+                if !self.is_obstacle(new_x, new_y) {
+                    return Some((new_x, new_y));
+                }
             }
         }
         None
@@ -221,7 +248,11 @@ impl GameBoard {
             let guard = self.get(old_position.0, old_position.1).unwrap();
             let guard_rep = guard.get_representation();
             if self
-                .set(old_position.0, old_position.1, Box::new(Dot::new()))
+                .set(
+                    old_position.0,
+                    old_position.1,
+                    GameBoardCell::Dot(Dot::new()),
+                )
                 .is_err()
             {
                 return None;
@@ -230,8 +261,7 @@ impl GameBoard {
                 .set(
                     new_position.0,
                     new_position.1,
-                    Box::new(Guard::new(guard_rep).expect("Invalid guard rep"))
-                        as Box<dyn GamePiece>,
+                    GameBoardCell::Guard(Guard::new(guard_rep).expect("Invalid guard rep")),
                 )
                 .is_err()
             {
@@ -262,14 +292,18 @@ impl GameBoard {
             count += self.step_until_stopped();
             let guard_position = self.find_guard().unwrap();
             let guard = self.get(guard_position.0, guard_position.1).unwrap();
-            let mut guard = Guard::new(guard.get_representation()).expect("Require valid guard");
-            guard.turn_right();
-            self.set(
-                guard_position.0,
-                guard_position.1,
-                Box::new(guard) as Box<dyn GamePiece>,
-            )
-            .expect("Must update guard");
+            let guard = Guard::new(guard.get_representation()).expect("Require valid guard");
+            let guard = guard.turn_right();
+            if let Some(guard) = guard {
+                self.set(
+                    guard_position.0,
+                    guard_position.1,
+                    GameBoardCell::Guard(guard),
+                )
+                .expect("Must update guard");
+            } else {
+                break;
+            }
             let guard_position = self.step_guard();
             if guard_position.is_none() {
                 break;
@@ -332,35 +366,35 @@ mod tests {
 
     #[test]
     fn test_guard_turn_right() {
-        let mut guard = Guard::new('^').unwrap();
-        guard.turn_right();
+        let guard = Guard::new('^').unwrap();
+        let guard = guard.turn_right().expect("must rotate");
         assert_eq!(guard.get_representation(), '>');
     }
 
     #[test]
     fn test_guard_turn_right_twice() {
-        let mut guard = Guard::new('^').unwrap();
-        guard.turn_right();
-        guard.turn_right();
+        let guard = Guard::new('^').unwrap();
+        let guard = guard.turn_right().expect("must rotate");
+        let guard = guard.turn_right().expect("must rotate");
         assert_eq!(guard.get_representation(), 'v');
     }
 
     #[test]
-    fn test_guard_turn_right_thrice() {
-        let mut guard = Guard::new('^').unwrap();
-        guard.turn_right();
-        guard.turn_right();
-        guard.turn_right();
+    fn test_three_rights_make_a_left() {
+        let guard = Guard::new('^').unwrap();
+        let guard = guard.turn_right().expect("must rotate");
+        let guard = guard.turn_right().expect("must rotate");
+        let guard = guard.turn_right().expect("must rotate");
         assert_eq!(guard.get_representation(), '<');
     }
 
     #[test]
-    fn tesst_three_lefts_make_a_right() {
-        let mut guard = Guard::new('^').unwrap();
-        guard.turn_right();
-        guard.turn_right();
-        guard.turn_right();
-        guard.turn_right();
+    fn test_all_around_the_world() {
+        let guard = Guard::new('^').unwrap();
+        let guard = guard.turn_right().expect("must rotate");
+        let guard = guard.turn_right().expect("must rotate");
+        let guard = guard.turn_right().expect("must rotate");
+        let guard = guard.turn_right().expect("must rotate");
         assert_eq!(guard.get_representation(), '^');
     }
 
@@ -397,8 +431,8 @@ mod tests {
     #[test]
     fn test_game_board_new() {
         let game_board = GameBoard::new(10, 10);
-        assert!(game_board.get(0, 0).is_none());
-        assert!(game_board.get(9, 9).is_none());
+        assert_eq!(game_board.get(0, 0), Some(&GameBoardCell::default()));
+        assert_eq!(game_board.get(9, 9), Some(&GameBoardCell::default()));
     }
 
     #[test]
