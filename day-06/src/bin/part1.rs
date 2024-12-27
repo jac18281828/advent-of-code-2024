@@ -160,7 +160,7 @@ impl GameBoard {
     }
 
     fn get(&self, x: usize, y: usize) -> Option<&dyn GamePiece> {
-        if let Some(piece) = self.board.get(x, y) {
+        if let Some(piece) = self.board.get(x, y).unwrap_or(None) {
             return Some(piece.as_ref());
         }
         None
@@ -397,8 +397,8 @@ mod tests {
     #[test]
     fn test_game_board_new() {
         let game_board = GameBoard::new(10, 10);
-        assert!(game_board.board.get(0, 0).is_none());
-        assert!(game_board.board.get(9, 9).is_none());
+        assert!(game_board.get(0, 0).is_none());
+        assert!(game_board.get(9, 9).is_none());
     }
 
     #[test]

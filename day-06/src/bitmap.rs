@@ -23,47 +23,31 @@ impl<G> Bitmap<G> {
     }
 
     pub fn is_set(&self, x: usize, y: usize) -> bool {
-        if let Some(dx) = self.index_position(x, y) {
-            return self.data.get(dx).unwrap().is_some();
-        }
-        false
+        self.index_position(x, y)
+            .and_then(|index| self.data.get(index))
+            .map_or(false, Option::is_some)
     }
 
-    pub fn is_set_check_bounds(&self, x: usize, y: usize) -> Result<bool, BitmapError> {
-        if let Some(dx) = self.index_position(x, y) {
-            return Ok(self.data.get(dx).is_some());
-        }
-        Err(BitmapError::OutOfBounds)
-    }
-
-    pub fn get_check_bounds(&self, x: usize, y: usize) -> Result<&Option<G>, BitmapError> {
-        if let Some(dx) = self.index_position(x, y) {
-            return Ok(self.data.get(dx).unwrap());
-        }
-        Err(BitmapError::OutOfBounds)
-    }
-
-    pub fn get(&self, x: usize, y: usize) -> Option<&G> {
-        let index = self.index_position(x, y);
-        if let Some(dx) = index {
-            return self.data.get(dx).unwrap().as_ref();
-        }
-        None
+    pub fn get(&self, x: usize, y: usize) -> Result<Option<&G>, BitmapError> {
+        self.index_position(x, y)
+            .map(|index| self.data.get(index).unwrap().as_ref())
+            .ok_or(BitmapError::OutOfBounds)
     }
 
     pub fn set(&mut self, x: usize, y: usize, value: G) -> Result<(), BitmapError> {
-        let index = self.index_position(x, y);
-        if let Some(dx) = index {
-            self.data[dx] = Some(value);
-            return Ok(());
+        if let Some(index) = self.index_position(x, y) {
+            self.data[index] = Some(value);
+            Ok(())
+        } else {
+            Err(BitmapError::OutOfBounds)
         }
-        Err(BitmapError::OutOfBounds)
     }
-
-    pub fn clear(&mut self, x: usize, y: usize) {
-        let index = self.index_position(x, y);
-        if let Some(dx) = index {
-            self.data[dx] = None;
+    pub fn clear(&mut self, x: usize, y: usize) -> Result<(), BitmapError> {
+        if let Some(index) = self.index_position(x, y) {
+            self.data[index] = None;
+            Ok(())
+        } else {
+            Err(BitmapError::OutOfBounds)
         }
     }
 
@@ -85,22 +69,23 @@ impl<G> Bitmap<G> {
 
 impl Bitmap<char> {
     pub fn import(lines: &[String]) -> Self {
-        let width = lines[0].len();
+        let width = lines.first().map_or(0, String::len);
         let height = lines.len();
-        let mut bitmap: Bitmap<char> = Bitmap::new(width, height);
+        let mut bitmap = Bitmap::new(width, height);
+
         for (y, line) in lines.iter().enumerate() {
             for (x, c) in line.chars().enumerate() {
                 bitmap.set(x, y, c).expect("Set must succeed");
             }
         }
+
         bitmap
     }
 
     pub fn print(&self) {
         for y in 0..self.height() {
             for x in 0..self.width() {
-                let c = self.get(x, y).unwrap_or(&' ');
-                print!("{}", c);
+                print!("{}", self.get(x, y).unwrap_or(Some(&' ')).unwrap_or(&' '));
             }
             println!();
         }
@@ -116,9 +101,9 @@ mod tests {
         let bitmap: Bitmap<i32> = Bitmap::new(10, 10);
         assert_eq!(bitmap.width(), 10);
         assert_eq!(bitmap.height(), 10);
-        for i in 0..100 {
-            for j in 0..100 {
-                assert!(bitmap.get(i, j).is_none());
+        for i in 0..10 {
+            for j in 0..10 {
+                assert!(bitmap.get(i, j).expect("is in bounds").is_none());
             }
         }
     }
@@ -127,16 +112,22 @@ mod tests {
     fn test_bitmap_set_and_get() {
         let mut bitmap: Bitmap<i32> = Bitmap::new(10, 10);
         bitmap.set(2, 3, 42).expect("Set must succeed");
-        assert_eq!(bitmap.get(2, 3), Some(&42));
+        assert_eq!(bitmap.get(2, 3).expect("is in bounds"), Some(&42));
     }
 
     #[test]
     fn test_bitmap_clear() {
         let mut bitmap: Bitmap<i32> = Bitmap::new(10, 10);
         bitmap.set(2, 3, 42).expect("Set must succeed");
-        assert!(bitmap.get(2, 3).is_some(), "Value must be set");
-        bitmap.clear(2, 3);
-        assert!(bitmap.get(2, 3).is_none(), "value must be cleared");
+        assert!(
+            bitmap.get(2, 3).expect("is in bounds").is_some(),
+            "Value must be set"
+        );
+        bitmap.clear(2, 3).expect("Clear must succeed");
+        assert!(
+            bitmap.get(2, 3).expect("is in bounds").is_none(),
+            "value must be cleared"
+        );
     }
 
     #[test]
@@ -145,30 +136,6 @@ mod tests {
         assert!(!bitmap.is_set(2, 3), "Value must not be set");
         bitmap.set(2, 3, 42).expect("Set must succeed");
         assert!(bitmap.is_set(2, 3), "Value must be set");
-    }
-
-    #[test]
-    fn test_bitmap_out_of_bounds() {
-        let bitmap: Bitmap<i32> = Bitmap::new(10, 10);
-        assert!(bitmap.get(10, 10).is_none());
-        assert!(bitmap.get(11, 0).is_none());
-        assert!(bitmap.get(0, 11).is_none());
-    }
-
-    #[test]
-    fn test_bitmap_is_set_check_bounds() {
-        let bitmap: Bitmap<i32> = Bitmap::new(10, 10);
-        assert!(bitmap.is_set_check_bounds(10, 10).is_err());
-        assert!(bitmap.is_set_check_bounds(11, 0).is_err());
-        assert!(bitmap.is_set_check_bounds(0, 11).is_err());
-    }
-
-    #[test]
-    fn test_bitmap_get_check_bounds() {
-        let bitmap: Bitmap<i32> = Bitmap::new(10, 10);
-        assert!(bitmap.get_check_bounds(10, 10).is_err());
-        assert!(bitmap.get_check_bounds(11, 0).is_err());
-        assert!(bitmap.get_check_bounds(0, 11).is_err());
     }
 
     #[test]
@@ -182,17 +149,17 @@ mod tests {
     #[test]
     fn test_bitmap_get_out_of_bounds() {
         let bitmap: Bitmap<i32> = Bitmap::new(10, 10);
-        assert!(bitmap.get(10, 10).is_none());
-        assert!(bitmap.get(11, 0).is_none());
-        assert!(bitmap.get(0, 11).is_none());
+        assert!(bitmap.get(10, 10).is_err());
+        assert!(bitmap.get(11, 0).is_err());
+        assert!(bitmap.get(0, 11).is_err());
     }
 
     #[test]
     fn test_bitmap_clear_out_of_bounds() {
         let mut bitmap: Bitmap<i32> = Bitmap::new(10, 10);
-        bitmap.clear(10, 10);
-        bitmap.clear(11, 0);
-        bitmap.clear(0, 11);
+        assert!(bitmap.clear(10, 10).is_err());
+        assert!(bitmap.clear(11, 0).is_err());
+        assert!(bitmap.clear(0, 11).is_err());
     }
 
     #[test]
@@ -207,7 +174,7 @@ mod tests {
     fn test_charmap() {
         let mut bitmap: Bitmap<char> = Bitmap::new(10, 10);
         bitmap.set(2, 3, 'a').expect("Set must succeed");
-        assert_eq!(bitmap.get(2, 3), Some(&'a'));
+        assert_eq!(bitmap.get(2, 3).expect("is in bounds"), Some(&'a'));
     }
 
     #[test]
@@ -216,9 +183,9 @@ mod tests {
         let bitmap = Bitmap::import(&lines);
         assert_eq!(bitmap.width(), 10);
         assert_eq!(bitmap.height(), 10);
-        assert_eq!(bitmap.get(0, 0), Some(&'.'));
-        assert_eq!(bitmap.get(9, 9), Some(&'.'));
-        assert_eq!(bitmap.get(4, 6), Some(&'^'));
+        assert_eq!(bitmap.get(0, 0).expect("is in bounds"), Some(&'.'));
+        assert_eq!(bitmap.get(9, 9).expect("is in bounds"), Some(&'.'));
+        assert_eq!(bitmap.get(4, 6).expect("is in bounds"), Some(&'^'));
     }
 
     fn sample_data() -> Vec<String> {
